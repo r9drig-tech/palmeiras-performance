@@ -1,4 +1,4 @@
-# Palmeiras Performance Hub
+# Palmeiras Performance
 
 Análise de desempenho esportivo do **Palmeiras (time profissional)**, desenvolvida com
 **Python e Power BI** a partir de súmulas oficiais. O projeto transforma registros de
