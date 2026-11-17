@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+*.log
+
+# Súmulas brutas (PDFs) não são versionadas
+dados/brutos/*.pdf
+dados/brutos/**/*.pdf
+
+# Arquivos temporários do Power BI
+*.pbix.tmp
+.pbi/

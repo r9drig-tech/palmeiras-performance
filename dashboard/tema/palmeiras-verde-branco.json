@@ -1,0 +1,104 @@
+{
+  "name": "Palmeiras Performance Hub - Verde e Branco",
+  "dataColors": [
+    "#006437", "#9AA5A0", "#1E8A4F", "#2B3A32", "#8FD1A9", "#B3261E", "#4FB57F", "#5E6B64"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#16231C",
+  "tableAccent": "#006437",
+  "good": "#1B7F3B",
+  "neutral": "#8A8F98",
+  "bad": "#B3261E",
+  "maximum": "#006437",
+  "center": "#8FD1A9",
+  "minimum": "#E4F1E8",
+  "null": "#C9D1CC",
+  "textClasses": {
+    "callout": { "fontSize": 24, "fontFace": "Segoe UI Semibold", "color": "#16231C" },
+    "title": { "fontSize": 11, "fontFace": "Segoe UI Semibold", "color": "#16231C" },
+    "header": { "fontSize": 10, "fontFace": "Segoe UI Semibold", "color": "#16231C" },
+    "label": { "fontSize": 9, "fontFace": "Segoe UI", "color": "#5E6B64" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": false }],
+        "border": [{ "show": false }],
+        "visualHeader": [{ "show": false }],
+        "title": [{ "show": false }],
+        "dropShadow": [{ "show": false }],
+        "padding": [{ "top": 4, "bottom": 4, "left": 6, "right": 6 }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#F2F5F3" } }, "transparency": 100 }],
+        "outspace": [{ "color": { "solid": { "color": "#F2F5F3" } } }]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [{ "fontSize": 24, "fontFamily": "Segoe UI Semibold", "color": { "solid": { "color": "#16231C" } } }],
+        "categoryLabels": [{ "show": false }]
+      }
+    },
+    "slicer": {
+      "*": {
+        "header": [{ "show": false }],
+        "items": [{ "fontSize": 10, "fontFamily": "Segoe UI", "fontColor": { "solid": { "color": "#16231C" } }, "background": { "solid": { "color": "#FFFFFF" } } }],
+        "data": [{ "mode": "Dropdown" }]
+      }
+    },
+    "columnChart": {
+      "*": {
+        "categoryAxis": [{ "labelColor": { "solid": { "color": "#5E6B64" } }, "fontSize": 8 }],
+        "valueAxis": [{ "show": false }],
+        "labels": [{ "show": true, "fontSize": 9, "color": { "solid": { "color": "#16231C" } } }],
+        "y1AxisReferenceLine": [],
+        "legend": [{ "show": true, "position": "Bottom", "fontSize": 8, "labelColor": { "solid": { "color": "#5E6B64" } } }]
+      }
+    },
+    "clusteredColumnChart": {
+      "*": {
+        "categoryAxis": [{ "labelColor": { "solid": { "color": "#5E6B64" } }, "fontSize": 8 }],
+        "valueAxis": [{ "show": false }],
+        "labels": [{ "show": true, "fontSize": 9, "color": { "solid": { "color": "#16231C" } } }],
+        "legend": [{ "show": true, "position": "Bottom", "fontSize": 8, "labelColor": { "solid": { "color": "#5E6B64" } } }]
+      }
+    },
+    "barChart": {
+      "*": {
+        "categoryAxis": [{ "labelColor": { "solid": { "color": "#5E6B64" } }, "fontSize": 8 }],
+        "valueAxis": [{ "show": false }],
+        "labels": [{ "show": true, "fontSize": 9, "color": { "solid": { "color": "#16231C" } } }]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "categoryAxis": [{ "labelColor": { "solid": { "color": "#5E6B64" } }, "fontSize": 8 }],
+        "valueAxis": [{ "labelColor": { "solid": { "color": "#5E6B64" } }, "fontSize": 8, "gridlineColor": { "solid": { "color": "#DCE4DF" } } }],
+        "lineStyles": [{ "strokeWidth": 3 }]
+      }
+    },
+    "donutChart": {
+      "*": {
+        "legend": [{ "show": true, "position": "Bottom", "fontSize": 8, "labelColor": { "solid": { "color": "#5E6B64" } } }],
+        "labels": [{ "show": true, "fontSize": 9, "color": { "solid": { "color": "#16231C" } }, "labelStyle": "Category, data value, percent of total" }]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "columnHeaders": [{ "fontColor": { "solid": { "color": "#FFFFFF" } }, "backColor": { "solid": { "color": "#006437" } }, "fontSize": 9, "bold": true }],
+        "values": [{ "fontColor": { "solid": { "color": "#16231C" } }, "backColor": { "solid": { "color": "#FFFFFF" } }, "backColorSecondary": { "solid": { "color": "#F1F5F2" } }, "fontSize": 9 }],
+        "grid": [{ "gridVertical": false, "gridHorizontal": true, "gridHorizontalColor": { "solid": { "color": "#E1E8E3" } } }]
+      }
+    },
+    "pivotTable": {
+      "*": {
+        "columnHeaders": [{ "fontColor": { "solid": { "color": "#FFFFFF" } }, "backColor": { "solid": { "color": "#006437" } }, "fontSize": 9, "bold": true }],
+        "rowHeaders": [{ "fontColor": { "solid": { "color": "#16231C" } }, "fontSize": 9 }],
+        "values": [{ "fontColor": { "solid": { "color": "#16231C" } }, "fontSize": 9 }]
+      }
+    }
+  }
+}

@@ -1,0 +1,369 @@
+// =============================================================================
+// Palmeiras Performance Hub — Medidas DAX
+//
+// COMO USAR
+//  1. Crie uma tabela vazia para abrigar as medidas:  Modelagem > Nova tabela >
+//         _Medidas = { BLANK () }       (depois oculte a coluna criada)
+//  2. Crie cada medida abaixo com Modelagem > Nova medida (uma por vez), colando
+//     apenas o corpo "Nome = expressão". Use a pasta de exibição indicada em
+//     "// Pasta:" para organizar.
+//  3. Todas as medidas respeitam o filtro de competição (segmentação em
+//     dim_competicao[competicao]) e qualquer outro filtro da página.
+//
+// Convenção: "Palmeiras" e "Adversário" vêm da coluna [lado] das tabelas fato.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// TABELA CALCULADA — Calendário  (Modelagem > Nova tabela)
+// -----------------------------------------------------------------------------
+dim_calendario =
+ADDCOLUMNS (
+    CALENDAR (
+        DATE ( YEAR ( MIN ( dim_partida[data] ) ), 1, 1 ),
+        DATE ( YEAR ( MAX ( dim_partida[data] ) ), 12, 31 )
+    ),
+    "Ano", YEAR ( [Date] ),
+    "Mês Nº", MONTH ( [Date] ),
+    "Mês", FORMAT ( [Date], "mmm" ),
+    "Ano-Mês", FORMAT ( [Date], "yyyy-mm" )
+)
+// Depois: marque como tabela de datas e relacione dim_calendario[Date] -> dim_partida[data].
+// Classifique "Mês" pela coluna "Mês Nº".
+
+
+// =============================================================================
+// 1) RESULTADOS  — Pasta: 01 Resultados
+// =============================================================================
+
+Partidas =
+COUNTROWS ( dim_partida )
+
+Vitórias =
+CALCULATE ( [Partidas], dim_partida[resultado] = "V" )
+
+Empates =
+CALCULATE ( [Partidas], dim_partida[resultado] = "E" )
+
+Derrotas =
+CALCULATE ( [Partidas], dim_partida[resultado] = "D" )
+
+// Pontos pelo resultado em 90 minutos (3/1/0). Faz sentido em pontos corridos e fases de grupos.
+Pontos =
+SUM ( dim_partida[pontos] )
+
+Aproveitamento =
+DIVIDE ( [Pontos], [Partidas] * 3 )
+// Formato: porcentagem, 1 casa decimal
+
+Jogos sem Sofrer Gols =
+CALCULATE ( [Partidas], dim_partida[gols_contra] = 0 )
+
+Jogos Marcando =
+CALCULATE ( [Partidas], dim_partida[gols_pro] > 0 )
+
+Forma Recente =
+// Últimos 5 resultados no contexto atual, do mais antigo para o mais recente (ex.: V V E D V)
+CONCATENATEX (
+    TOPN ( 5, ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo], DESC ),
+    dim_partida[resultado],
+    " ",
+    dim_partida[ordem_jogo], ASC
+)
+
+Título Competição =
+IF (
+    ISFILTERED ( dim_competicao[competicao] ),
+    CONCATENATEX ( VALUES ( dim_competicao[competicao] ), dim_competicao[competicao], " + ", dim_competicao[ordem], ASC ),
+    "Todas as competições"
+)
+
+
+// =============================================================================
+// 2) GOLS  — Pasta: 02 Gols
+// =============================================================================
+
+Gols Pró =
+SUM ( dim_partida[gols_pro] )
+
+Gols Contra =
+SUM ( dim_partida[gols_contra] )
+
+Saldo de Gols =
+[Gols Pró] - [Gols Contra]
+
+Média Gols Pró =
+DIVIDE ( [Gols Pró], [Partidas] )
+
+Média Gols Contra =
+DIVIDE ( [Gols Contra], [Partidas] )
+
+// Gols marcados por atletas do Palmeiras (exclui gol contra do adversário)
+Gols do Elenco =
+CALCULATE (
+    COUNTROWS ( fato_gols ),
+    fato_gols[lado_autor] = "Palmeiras",
+    fato_gols[gol_contra] = 0
+)
+
+Gols Contra a Favor =
+// Gols contra do adversário que contaram para o Palmeiras
+CALCULATE (
+    COUNTROWS ( fato_gols ),
+    fato_gols[lado_beneficiado] = "Palmeiras",
+    fato_gols[gol_contra] = 1
+)
+
+Gols Contra Próprios =
+// Gols contra feitos por atletas do Palmeiras (contam para o adversário)
+CALCULATE (
+    COUNTROWS ( fato_gols ),
+    fato_gols[lado_autor] = "Palmeiras",
+    fato_gols[gol_contra] = 1
+)
+
+Gols de Pênalti =
+CALCULATE ( COUNTROWS ( fato_gols ), fato_gols[lado_autor] = "Palmeiras", fato_gols[tipo] = "PN" )
+
+Gols de Falta =
+CALCULATE ( COUNTROWS ( fato_gols ), fato_gols[lado_autor] = "Palmeiras", fato_gols[tipo] = "FT" )
+
+Gols Sofridos (eventos) =
+CALCULATE ( COUNTROWS ( fato_gols ), fato_gols[lado_beneficiado] = "Adversário" )
+
+Gols Pró (eventos) =
+CALCULATE ( COUNTROWS ( fato_gols ), fato_gols[lado_beneficiado] = "Palmeiras" )
+
+// Conferência: deve ser 0 em qualquer filtro (placar x eventos). Útil em página de auditoria.
+Divergência Placar x Eventos =
+( [Gols Pró] - [Gols Pró (eventos)] ) + ( [Gols Contra] - [Gols Sofridos (eventos)] )
+
+Gols no 1º Tempo (pró) =
+SUM ( dim_partida[gols_pro_1t] )
+
+Gols no 1º Tempo (contra) =
+SUM ( dim_partida[gols_contra_1t] )
+
+// --- acumulados (usam dim_partida[ordem_jogo]; para eixo "Nº do jogo") ----------
+Gols Pró Acumulado =
+VAR _n = MAX ( dim_partida[ordem_jogo] )
+RETURN
+    CALCULATE ( [Gols Pró], FILTER ( ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo] <= _n ) )
+
+Gols Contra Acumulado =
+VAR _n = MAX ( dim_partida[ordem_jogo] )
+RETURN
+    CALCULATE ( [Gols Contra], FILTER ( ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo] <= _n ) )
+
+Saldo Acumulado =
+[Gols Pró Acumulado] - [Gols Contra Acumulado]
+
+Pontos Acumulados =
+VAR _n = MAX ( dim_partida[ordem_jogo] )
+RETURN
+    CALCULATE ( [Pontos], FILTER ( ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo] <= _n ) )
+
+Aproveitamento Acumulado =
+VAR _n = MAX ( dim_partida[ordem_jogo] )
+RETURN
+    CALCULATE ( [Aproveitamento], FILTER ( ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo] <= _n ) )
+
+
+// =============================================================================
+// 3) CASA x FORA  — Pasta: 03 Mando
+// =============================================================================
+
+Aproveitamento Casa =
+CALCULATE ( [Aproveitamento], dim_partida[local_palmeiras] = "Casa" )
+
+Aproveitamento Fora =
+CALCULATE ( [Aproveitamento], dim_partida[local_palmeiras] = "Fora" )
+
+Pontos Casa =
+CALCULATE ( [Pontos], dim_partida[local_palmeiras] = "Casa" )
+
+Pontos Fora =
+CALCULATE ( [Pontos], dim_partida[local_palmeiras] = "Fora" )
+
+Saldo Casa =
+CALCULATE ( [Saldo de Gols], dim_partida[local_palmeiras] = "Casa" )
+
+Saldo Fora =
+CALCULATE ( [Saldo de Gols], dim_partida[local_palmeiras] = "Fora" )
+
+
+// =============================================================================
+// 4) ELENCO E INDIVIDUAL  — Pasta: 04 Individual
+// (use dim_jogador em visuais de jogador; as medidas abaixo já filtram lado = Palmeiras)
+// =============================================================================
+
+Jogos Utilizados =
+CALCULATE (
+    COUNTROWS ( fato_participacoes ),
+    fato_participacoes[utilizado] = 1,
+    fato_participacoes[lado] = "Palmeiras"
+)
+
+Titularidades =
+CALCULATE (
+    COUNTROWS ( fato_participacoes ),
+    fato_participacoes[titular] = 1,
+    fato_participacoes[lado] = "Palmeiras"
+)
+
+Entradas do Banco =
+CALCULATE (
+    COUNTROWS ( fato_participacoes ),
+    fato_participacoes[entrou_do_banco] = 1,
+    fato_participacoes[lado] = "Palmeiras"
+)
+
+Minutos Jogados =
+// Nominal: base de 90' (120' com prorrogação), sem somar acréscimos.
+CALCULATE (
+    SUM ( fato_participacoes[minutos_jogados] ),
+    fato_participacoes[lado] = "Palmeiras"
+)
+
+Média de Minutos por Jogo =
+DIVIDE ( [Minutos Jogados], [Jogos Utilizados] )
+
+Jogadores Utilizados =
+CALCULATE (
+    DISTINCTCOUNT ( fato_participacoes[id_jogador] ),
+    fato_participacoes[utilizado] = 1,
+    fato_participacoes[lado] = "Palmeiras"
+)
+
+Gols por 90 =
+DIVIDE ( [Gols do Elenco] * 90, [Minutos Jogados] )
+
+Minutos por Gol =
+DIVIDE ( [Minutos Jogados], [Gols do Elenco] )
+
+Participação em Gols (%) =
+DIVIDE ( [Gols do Elenco], CALCULATE ( [Gols do Elenco], REMOVEFILTERS ( dim_jogador ) ) )
+
+Jogos sem Sofrer Gols (goleiros) =
+// Para visual de goleiros: partidas em que o goleiro foi titular e o Palmeiras não sofreu gol.
+CALCULATE (
+    COUNTROWS ( fato_participacoes ),
+    fato_participacoes[lado] = "Palmeiras",
+    fato_participacoes[goleiro] = 1,
+    fato_participacoes[titular] = 1,
+    FILTER ( dim_partida, dim_partida[gols_contra] = 0 )
+)
+
+Artilheiro =
+VAR _top =
+    TOPN (
+        1,
+        FILTER ( VALUES ( dim_jogador[apelido] ), [Gols do Elenco] > 0 ),
+        [Gols do Elenco], DESC
+    )
+RETURN
+    IF ( ISEMPTY ( _top ), "—", CONCATENATEX ( _top, dim_jogador[apelido], ", " ) )
+
+Mais Utilizado =
+VAR _top =
+    TOPN (
+        1,
+        FILTER ( VALUES ( dim_jogador[apelido] ), [Minutos Jogados] > 0 ),
+        [Minutos Jogados], DESC
+    )
+RETURN
+    IF ( ISEMPTY ( _top ), "—", CONCATENATEX ( _top, dim_jogador[apelido], ", " ) )
+
+Substituições Realizadas =
+CALCULATE ( COUNTROWS ( fato_substituicoes ), fato_substituicoes[lado] = "Palmeiras" )
+
+Entradas (substituição) =
+// Para visual de jogador: quantas vezes entrou. Usa a relação ativa (id_jogador_entrou).
+CALCULATE ( COUNTROWS ( fato_substituicoes ), fato_substituicoes[lado] = "Palmeiras" )
+
+Saídas (substituição) =
+// Para visual de jogador: quantas vezes foi substituído. Usa a relação inativa (id_jogador_saiu).
+CALCULATE (
+    COUNTROWS ( fato_substituicoes ),
+    fato_substituicoes[lado] = "Palmeiras",
+    USERELATIONSHIP ( fato_substituicoes[id_jogador_saiu], dim_jogador[id_jogador] )
+)
+
+
+// =============================================================================
+// 5) DISCIPLINA  — Pasta: 05 Disciplina
+// =============================================================================
+
+// Cartão amarelo que gerou 2º amarelo/expulsão também consta como amarelo na súmula.
+Cartões Amarelos =
+CALCULATE ( COUNTROWS ( fato_cartoes ), fato_cartoes[cor] = "Amarelo", fato_cartoes[lado] = "Palmeiras" )
+
+Cartões Vermelhos =
+CALCULATE ( COUNTROWS ( fato_cartoes ), fato_cartoes[cor] = "Vermelho", fato_cartoes[lado] = "Palmeiras" )
+
+Cartões Amarelos (jogadores) =
+CALCULATE ( [Cartões Amarelos], fato_cartoes[papel] = "Jogador" )
+
+Cartões Amarelos (comissão) =
+CALCULATE ( [Cartões Amarelos], fato_cartoes[papel] = "Técnico" )
+
+Expulsões por 2º Amarelo =
+CALCULATE ( [Cartões Vermelhos], fato_cartoes[tipo_vermelho] = "Segundo amarelo" )
+
+Expulsões Diretas =
+CALCULATE ( [Cartões Vermelhos], fato_cartoes[tipo_vermelho] = "Direto" )
+
+Total de Cartões =
+[Cartões Amarelos] + [Cartões Vermelhos]
+
+Cartões por Jogo =
+DIVIDE ( [Total de Cartões], [Partidas] )
+
+Jogadores Advertidos =
+CALCULATE (
+    DISTINCTCOUNT ( fato_cartoes[id_jogador] ),
+    fato_cartoes[lado] = "Palmeiras",
+    fato_cartoes[papel] = "Jogador"
+)
+
+Cartões Amarelos Adversário =
+CALCULATE ( COUNTROWS ( fato_cartoes ), fato_cartoes[cor] = "Amarelo", fato_cartoes[lado] = "Adversário" )
+
+Cartões Vermelhos Adversário =
+CALCULATE ( COUNTROWS ( fato_cartoes ), fato_cartoes[cor] = "Vermelho", fato_cartoes[lado] = "Adversário" )
+
+Cartões Acumulados =
+VAR _n = MAX ( dim_partida[ordem_jogo] )
+RETURN
+    CALCULATE ( [Total de Cartões], FILTER ( ALLSELECTED ( dim_partida ), dim_partida[ordem_jogo] <= _n ) )
+
+
+// =============================================================================
+// 6) ANÁLISE DE PARTIDA (página de detalhe) — Pasta: 06 Partida
+// =============================================================================
+
+Partida Selecionada =
+SELECTEDVALUE ( dim_partida[placar_texto], "Selecione uma partida" )
+
+Detalhe Competição =
+SELECTEDVALUE ( dim_competicao[competicao] ) & " · " &
+IF ( ISBLANK ( SELECTEDVALUE ( dim_partida[rodada] ) ), "", "Rodada " & SELECTEDVALUE ( dim_partida[rodada] ) )
+
+Estádio Selecionado =
+SELECTEDVALUE ( dim_partida[estadio], "—" )
+
+Técnico Selecionado =
+SELECTEDVALUE ( dim_partida[tecnico_palmeiras], "—" )
+
+Árbitro Selecionado =
+SELECTEDVALUE ( dim_partida[arbitro], "—" )
+
+Resultado Cor =
+// Formatação condicional (cor de fundo/fonte): use "Valor do campo" com esta medida
+SWITCH (
+    SELECTEDVALUE ( dim_partida[resultado] ),
+    "V", "#1B7F3B",
+    "E", "#8A8F98",
+    "D", "#B3261E",
+    "#8A8F98"
+)

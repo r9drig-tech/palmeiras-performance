@@ -1,0 +1,10 @@
+id_competicao,competicao,padrao_nome,fonte,tipo,ordem
+BRA,Brasileirão Série A,Campeonato Brasileiro - Série A,CBF,Pontos corridos,1
+CDB,Copa do Brasil,Copa do Brasil,CBF,Mata-mata,2
+LIB,Libertadores,Libertadores,CONMEBOL,Grupos + mata-mata,3
+PAU,Paulistão,Campeonato Paulista,FPF,Grupos + mata-mata,4
+SUP,Supercopa do Brasil,Supercopa,CBF,Mata-mata,5
+REC,Recopa Sul-Americana,Recopa,CONMEBOL,Mata-mata,6
+MUN,Mundial de Clubes,Mundial,FIFA,Mata-mata,7
+AMI,Amistosos,Amistoso,Clube,Amistoso,8
+OUT,Outras,,,Outras,99
