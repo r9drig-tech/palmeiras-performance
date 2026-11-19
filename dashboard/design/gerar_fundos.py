@@ -253,11 +253,18 @@ def render_pagina(pg: dict, previa: bool = False) -> str:
             partes.append(f'<div class="nav-sep" style="top:{y + 70}px"></div>')
     # header
     partes.append('<div class="head-bg">' + deco_header() + "</div>")
-    partes.append(f'<div class="titulo"><div class="a">PALMEIRAS</div><div class="b">PERFORMANCE HUB</div></div>')
+    partes.append(f'<div class="titulo"><div class="b" style="margin:2px 0 6px">DESEMPENHO DO</div><div class="a">PALMEIRAS</div></div>')
     partes.append('<div class="tag">Análise<br>Desempenho<br>Evolução<br>Resultados</div>')
     ic_seg = {"Competição": "trophy", "Período": "clock", "Adversário": "people"}
+    exemplo_seg = {"Competição": "Todas as competições", "Período": "Todos", "Adversário": "Todos"}
     for nome, x in SEGMENTACOES:
         partes.append(f'<div class="seg" style="left:{x}px"><div class="l">{icon(ic_seg[nome], VERDE, 14)}<span>{nome}</span></div></div>')
+        if previa:  # simula a segmentação (no Power BI ela é um visual de verdade sobre esta caixa)
+            partes.append(
+                f'<div class="abs" style="left:{x+8}px;top:{SEG_Y+28}px;width:{SEG_W-16}px;height:26px;border:1px solid #D5DED8;'
+                f'border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:space-between;'
+                f'padding:0 9px;font-size:10px;font-weight:600;color:{TINTA}"><span>{exemplo_seg[nome]}</span>'
+                f'<svg width="10" height="10" viewBox="0 0 10 10"><path d="m1.5 3.5 3.5 3.5 3.5-3.5" fill="none" stroke="{MUDO}" stroke-width="1.5" stroke-linecap="round"/></svg></div>')
 
     # painéis
     for p in pg["paineis"]:
@@ -402,8 +409,21 @@ def previa_pagina1() -> str:
         out.append(f'<div class="abs" style="left:{a["x"]+66}px;top:{y+3}px;width:{(a["w"]-130)*t/100:.0f}px;height:8px;background:{VERDE};border-radius:2px"></div>')
         out.append(texto(a["x"] + a["w"] - 50, y, 44, 14, f"{str(t).replace('.',',')}%", 8, TINTA, 700, "flex-end"))
 
-    # aviso
-    out.append(f'<div class="abs" style="left:{MX}px;top:709px;font-size:8px;line-height:11px;color:{MUDO}">Prévia com dados fictícios, somente para visualizar o design.</div>')
+    # segmentações simuladas (no Power BI são visuais de segmentação, estilo lista suspensa)
+    for x, valor in ((670, "Todas as competições"), (872, "Todos"), (1074, "Todos")):
+        out.append(
+            f'<div class="abs" style="left:{x+8}px;top:{SEG_Y+28}px;width:{SEG_W-16}px;height:24px;background:#F1F5F2;'
+            f'border:1px solid #DCE4DF;border-radius:6px;display:flex;align-items:center;justify-content:space-between;'
+            f'padding:0 9px;font-size:10px;font-weight:600;color:{TINTA}"><span>{valor}</span>'
+            f'<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="{VERDE}" '
+            f'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>')
+    # etiqueta de dados fictícios
+    out.append(
+        f'<div class="abs" style="left:{MX}px;top:86px;height:17px;padding:0 9px;display:flex;align-items:center;'
+        f'background:#FFF1C9;border:1px solid #E5C766;border-radius:9px;font-size:8.5px;font-weight:800;'
+        f'letter-spacing:.06em;color:#7A5B00;text-transform:uppercase">Prévia · dados fictícios · não são resultados reais</div>')
+    out.append(f'<div class="abs" style="left:{MX}px;top:709px;font-size:8px;line-height:11px;color:{MUDO}">'
+               f'Os números reais dependem das súmulas carregadas no pipeline.</div>')
     return "".join(out)
 
 

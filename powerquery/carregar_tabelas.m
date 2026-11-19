@@ -1,5 +1,5 @@
 // =============================================================================
-// Palmeiras Performance Hub — Consultas do Power Query (M)
+// Desempenho do Palmeiras — Consultas do Power Query (M)
 //
 // COMO USAR
 //  1. Power BI Desktop > Transformar dados > Gerenciar parâmetros > Novo parâmetro

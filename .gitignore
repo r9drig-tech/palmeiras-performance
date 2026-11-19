@@ -12,3 +12,6 @@ dados/brutos/**/*.pdf
 # Arquivos temporários do Power BI
 *.pbix.tmp
 .pbi/
+design/
+docs/guia_posicionamento.md
+docs/layout_paginas.md
